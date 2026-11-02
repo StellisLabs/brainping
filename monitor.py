@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Job Watcher — a free, self-hosted Visualping for careers pages.
+Job Watcher: a free, self-hosted Visualping for careers pages.
 
 Each run:
   1. fetches the current job list for every company in config.yaml
@@ -391,13 +391,13 @@ def inspect(url: str, browser: bool):
         shape = re.sub(r"\d{4,}", "<id>", shape)
         shapes.setdefault(shape, []).append((href, " / ".join(_segments(a))[:80]))
     print(f"\nPage: {final_url}\n{len(page_html):,} bytes of HTML\n")
-    print("Link shapes with IDs (most common first) — a job pattern is usually the top one:")
+    print("Link shapes with IDs (most common first). A job pattern is usually the top one:")
     for shape, items in sorted(shapes.items(), key=lambda kv: -len(kv[1]))[:8]:
         print(f"\n  {len(items):>3}×  {shape}")
         for href, text in items[:3]:
             print(f"        {text or '(no text)'}\n          {href}")
     if not shapes:
-        print("  (none — try --browser, the list is probably built by JavaScript)")
+        print("  (none. Try --browser, the list is probably built by JavaScript)")
     if captured:
         print("\nJSON responses the page loaded (a `json_hint` is any unique bit of the URL):")
         for c in captured:
@@ -507,7 +507,7 @@ def _has_term(title_lc: str, term: str) -> bool:
 # Every site writes locations differently ("Mountain View, CA, USA", "Fremont, California,
 # United States", "London", "HKG"), so each country gets a list of names, codes and big
 # tech cities. Short codes (CA, NY, UK...) only count at the end of a comma-separated
-# segment, e.g. "Seattle, WA" — so "CA" inside a word never matches.
+# segment, e.g. "Seattle, WA", so "CA" inside a word never matches.
 _US_STATES = ("alabama al alaska ak arizona az arkansas ar california ca colorado co connecticut ct "
               "delaware de florida fl georgia ga hawaii hi idaho id illinois il indiana in iowa ia "
               "kansas ks kentucky ky louisiana la maine me maryland md massachusetts ma michigan mi "
@@ -656,7 +656,7 @@ def smtp_settings():
 def send_email(subject: str, html_body: str, text_body: str) -> bool:
     s = smtp_settings()
     if not (s["user"] and s["password"] and s["to"]):
-        print("  (email not configured — set SMTP_USER, SMTP_PASS, EMAIL_TO)")
+        print("  (email not configured: set SMTP_USER, SMTP_PASS, EMAIL_TO)")
         return False
     msg = MIMEMultipart("alternative")
     msg["Subject"], msg["From"], msg["To"] = subject, s["user"], s["to"]
@@ -685,10 +685,10 @@ def build_digest(new_by_company: dict[str, list[Job]], cap: int):
         rows = []
         text.append(f"\n== {company} ({len(jobs)}) ==")
         for j in jobs[:cap]:
-            loc = f" — {html.escape(j.location)}" if j.location else ""
+            loc = f" - {html.escape(j.location)}" if j.location else ""
             rows.append(f'<li><a href="{html.escape(j.url)}">{html.escape(j.title)}</a>'
                         f'<span style="color:#666">{loc}</span></li>')
-            text.append(f"- {j.title}{' — ' + j.location if j.location else ''}\n  {j.url}")
+            text.append(f"- {j.title}{' - ' + j.location if j.location else ''}\n  {j.url}")
         if len(jobs) > cap:
             rows.append(f"<li><i>…and {len(jobs) - cap} more</i></li>")
         parts.append(f"<h3 style='margin:18px 0 6px'>{html.escape(company)} "
@@ -723,7 +723,7 @@ def run(args):
             try:
                 jobs = FETCHERS[c["source"]](c)
                 # A scraped page returning zero links almost always means the page
-                # changed or blocked us — treat it as a failure, not "no jobs".
+                # changed or blocked us, so treat it as a failure, not "no jobs".
                 if not jobs and c["source"] in ("links", "apple"):
                     raise RuntimeError("0 job links found (page layout changed or request blocked?)")
             except Exception as e:  # one broken site never stops the others
@@ -781,7 +781,7 @@ def run(args):
     if broken and not args.dry_run:
         send_email("⚠️ Job Watcher: a source stopped working",
                    "<p>These sources have failed several checks in a row. The careers page "
-                   "probably changed — update its entry in config.yaml.</p><ul>"
+                   "probably changed. Update its entry in config.yaml.</p><ul>"
                    + "".join(f"<li>{html.escape(b)}</li>" for b in broken) + "</ul>",
                    "\n".join(broken))
 

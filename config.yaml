@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-#  Job Watcher config  —  edit this file, no code changes needed
+#  Job Watcher config: edit this file, no code changes needed
 # ─────────────────────────────────────────────────────────────
 #
 # Each company has a `source` telling the script HOW to read its jobs:
@@ -78,7 +78,7 @@ companies:
     params:
       sort: recent
       result_limit: 100
-      "normalized_country_code[]": [USA, HKG, DEU, GBR, NZL]
+      "normalized_country_code[]": [USA, GBR, JPN, SGP, DEU, IRL, AUS, FRA, CAN, KOR, HKG]
     pages: 3               # 3 × 100 newest jobs per check
     filter: early_career_tech
 
@@ -196,7 +196,7 @@ settings:
   # Only alert on jobs in these places (applies to every company; a company can
   # override with its own `locations:` list). Delete this to allow anywhere.
   # Known names: us, uk, japan, singapore, germany, ireland, australia, france,
-  # canada, south korea, hong kong, new zealand — anything else (e.g. "zurich")
+  # canada, south korea, hong kong, new zealand. Anything else (e.g. "zurich")
   # is matched as plain text.
   # Top countries from the Nov 2026 --locations survey (India left out on purpose),
   # plus Hong Kong (home base, 0 jobs today but worth watching).

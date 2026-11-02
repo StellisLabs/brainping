@@ -14,18 +14,18 @@ It reads jobs three ways, from most to least reliable:
 
 | Method | Companies | Why |
 |---|---|---|
-| Official ATS JSON APIs | Airbnb, Anthropic, Duolingo, Waymo, Neuralink, Synchron (Greenhouse) · Spotify (Lever) · OpenAI, Merge Labs (Ashby) · Neurable (SmartRecruiters) | Public endpoints built for embedding careers pages — clean, stable |
+| Official ATS JSON APIs | Airbnb, Anthropic, Duolingo, Waymo, Neuralink, Synchron (Greenhouse) · Spotify (Lever) · OpenAI, Merge Labs (Ashby) · Neurable (SmartRecruiters) | Public endpoints built for embedding careers pages: clean and stable |
 | Company endpoints | Amazon (`search.json`), Apple (data embedded in page) | Big companies with their own systems |
 | Link scraping ("Visualping mode") | Google, Paradromics (plain HTTP) · Meta, Meta Reality Labs, Microsoft, Uber, Precision (headless Chrome) | No public API; these pages build the list with JavaScript, so a real browser renders them and the script collects links matching a pattern |
 
 Safety features:
-- **First check seeds silently** — you won't get 600 "new" Anthropic jobs on day one.
+- **First check seeds silently**: you won't get 600 "new" Anthropic jobs on day one.
 - **One broken site never stops the others.**
-- **Breakage alert** — if a site fails 4 checks in a row (usually a redesign), you get a "⚠️ source stopped working" email instead of silent failure.
-- **Filters** — big companies post hundreds of roles/day, so they use the `early_career_tech` filter (SWE/ML/AI/data/research/intern/new-grad, excluding senior/staff/manager…). Neurotech companies get almost everything. Edit `config.yaml` to taste; remove a company's `filter:` line to get every posting.
+- **Breakage alert**: if a site fails 4 checks in a row (usually a redesign), you get a "⚠️ source stopped working" email instead of silent failure.
+- **Filters**: big companies post hundreds of roles/day, so they use the `early_career_tech` filter (SWE/ML/AI/data/research/intern/new-grad, excluding senior/staff/manager…). Neurotech companies get almost everything. Edit `config.yaml` to taste; remove a company's `filter:` line to get every posting.
 
 ### Location filter
-`settings.locations` in `config.yaml` limits alerts to **US, Hong Kong, Germany, UK and New Zealand** (plus fully-remote roles). Each country has a list of names, codes and big tech cities, because sites write the same place many ways ("Seattle, WA" / "Fremont, California, United States" / "London" / "HKG"). Jobs with **no location listed still alert**, so you never miss one just because a site left it blank. To add a place like Singapore, just append `singapore` to the list. Amazon is also asked directly for jobs in only those countries.
+`settings.locations` in `config.yaml` limits alerts to **US, UK, Japan, Singapore, Germany, Ireland, Australia, France, Canada, South Korea and Hong Kong** (plus fully-remote roles). These are the top countries from the `--locations` survey, minus India, plus Hong Kong. Each country has a list of names, codes and big tech cities, because sites write the same place many ways ("Seattle, WA" / "Fremont, California, United States" / "London" / "HKG"). Jobs with **no location listed still alert**, so you never miss one just because a site left it blank. To add a place like Switzerland, just append `switzerland` to the list. Amazon is also asked directly for jobs in only those countries, so if you change the list, update `normalized_country_code[]` under Amazon in `config.yaml` too (3-letter codes like `CHE`).
 
 ## Setup
 
@@ -36,10 +36,10 @@ Gmail won't accept your normal password from scripts.
 
 ### 2. Try it locally first (Windows, PowerShell)
 ```powershell
-cd job-watcher
+cd brainping
 python -m venv .venv
 .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt pytest
 python -m playwright install chromium
 
 python monitor.py --check          # health check: shows job counts + samples per company
@@ -52,9 +52,9 @@ $env:SMTP_USER="you@gmail.com"; $env:SMTP_PASS="abcdefghijklmnop"; $env:EMAIL_TO
 python monitor.py --test-email
 ```
 
-### 3. Run it on a schedule — pick one
+### 3. Run it on a schedule (pick one)
 
-**Option A: GitHub Actions (recommended — runs 24/7, even when your laptop sleeps)**
+**Option A: GitHub Actions (recommended: runs 24/7, even when your laptop sleeps)**
 1. Create a new repo and push this folder yourself (the workflow never commits anything; job history lives in the Actions cache).
 2. Repo → Settings → Secrets and variables → Actions → add `SMTP_USER`, `SMTP_PASS`, `EMAIL_TO`.
 3. Actions tab → *Job Watcher* → **Run workflow** once to seed it.
@@ -62,7 +62,7 @@ python monitor.py --test-email
 Things to know:
 - **Make the repo public.** Standard runners are free & unlimited for public repos. Private repos only get 2,000 min/month, and checking every 15 min needs ~4,000+. (Your secrets stay hidden either way; only the code is public.) If you want private, change the cron to hourly: `"17 * * * *"`.
 - GitHub may delay scheduled runs at busy times, so "every 15 min" is really "every 15–30 min".
-- In public repos GitHub **auto-disables schedules after 60 days with no repo activity** — push any small commit every ~2 months, or click "Enable workflow" if it stops.
+- In public repos GitHub **auto-disables schedules after 60 days with no repo activity**. Push any small commit every ~2 months, or click "Enable workflow" if it stops.
 - Some sites (most likely Meta/Microsoft) may block GitHub's datacenter IPs. If they keep failing there but work locally, use Option B for those.
 
 **Option B: Windows Task Scheduler (runs only while your PC is on)**
@@ -100,8 +100,8 @@ Big-company careers sites get redesigned. If `--check` shows ✗ or 0 jobs:
 
 ## Files
 ```
-monitor.py                      the whole program (~400 lines, commented)
-config.yaml                     companies, filters, settings — edit this
+monitor.py                      the whole program (~800 lines, commented)
+config.yaml                     companies, filters, settings (edit this)
 tests/test_monitor.py           offline tests: python -m pytest -q
 .github/workflows/job-watcher.yml   GitHub Actions schedule
 run_windows.bat                 Task Scheduler entry point

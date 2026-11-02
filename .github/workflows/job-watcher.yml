@@ -2,7 +2,7 @@ name: Job Watcher
 
 on:
   schedule:
-    # Every 15 min, on "odd" minutes — GitHub delays runs at :00 the most.
+    # Every 15 min, on "odd" minutes, because GitHub delays runs at :00 the most.
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch: {}   # "Run workflow" button for manual checks
 

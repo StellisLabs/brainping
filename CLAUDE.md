@@ -1,4 +1,4 @@
-# Job Watcher — context for Claude Code
+# Job Watcher: context for Claude Code
 
 ## What this is
 A free, self-hosted Visualping for careers pages. Every ~15 min it fetches open jobs from
@@ -15,7 +15,7 @@ that pass title + location filters. Built in a claude.ai chat (Nov 2026), now ma
 ## Commands
 ```powershell
 .venv\Scripts\activate
-python -m pytest -q                         # offline tests (no network) — run after every change
+python -m pytest -q                         # offline tests (no network), run after every change
 python monitor.py --check                   # live health check: ✓/✗ + sample jobs per company
 python monitor.py --check --only Uber -v    # one company, full traceback
 python monitor.py --dry-run                 # full run, prints digest, no email, no state saved
@@ -25,7 +25,7 @@ python monitor.py --test-email              # needs SMTP_USER / SMTP_PASS / EMAI
 ```
 
 ## Architecture (all in monitor.py)
-1. **Fetch** — `FETCHERS[source](company_cfg)` → `list[Job(id, title, url, location)]`.
+1. **Fetch**: `FETCHERS[source](company_cfg)` → `list[Job(id, title, url, location)]`.
    Sources, most → least reliable:
    - `greenhouse`, `lever`, `ashby`, `smartrecruiters`: official public ATS JSON APIs
    - `amazon` (`search.json`), `apple` (parses `window.__staticRouterHydrationData`)
@@ -33,14 +33,14 @@ python monitor.py --test-email              # needs SMTP_USER / SMTP_PASS / EMAI
      Chromium), keeps `<a>` hrefs matching `pattern` (must have `(?P<id>…)`, optional
      `(?P<slug>…)`). The first text segment of the link is the title, the rest is the location.
      Optional `json_hint` + `url_template` read the JSON API calls the page makes.
-2. **Diff** — `diff_company()`: the first successful fetch only seeds (no alerts). All IDs are
+2. **Diff**: `diff_company()`: the first successful fetch only seeds (no alerts). All IDs are
    recorded as seen *before* filtering, so changing filters never resurfaces old jobs.
-3. **Filter** — `passes()`: title include/exclude (word-boundary regex) + `location_ok()`.
+3. **Filter**: `passes()`: title include/exclude (word-boundary regex) + `location_ok()`.
    `COUNTRY_ALIASES` maps countries to names, codes and cities. Short codes like `CA` only
    match as a whole comma-separated segment. `normalize_location()` strips screen-reader
    noise and `⋅`/`·` separators. Jobs with an empty location pass on purpose.
 4. **Dedupe** across companies (a job keeps the later config entry, e.g. Meta Reality Labs).
-5. **Email** — one digest per run via Gmail SMTP (465). A breakage alert fires once after
+5. **Email**: one digest per run via Gmail SMTP (465). A breakage alert fires once after
    `failure_alert_after` consecutive failures. A scraped page returning 0 links = failure.
 6. **State** saved atomically (temp file + rename).
 
