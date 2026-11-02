@@ -1,0 +1,59 @@
+name: Job Watcher
+
+on:
+  schedule:
+    # Every 15 min, on "odd" minutes — GitHub delays runs at :00 the most.
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch: {}   # "Run workflow" button for manual checks
+
+# Never run two checks at once (they'd fight over state).
+concurrency:
+  group: job-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Cache Chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      # State (which job IDs we've seen) lives in the Actions cache,
+      # so the workflow never has to commit anything to your repo.
+      - name: Restore seen-jobs state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: jobwatch-state-${{ github.run_id }}
+          restore-keys: jobwatch-state-
+
+      - name: Check careers pages
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python monitor.py
+
+      - name: Save seen-jobs state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: jobwatch-state-${{ github.run_id }}

@@ -1,0 +1,207 @@
+# ─────────────────────────────────────────────────────────────
+#  Job Watcher config  —  edit this file, no code changes needed
+# ─────────────────────────────────────────────────────────────
+#
+# Each company has a `source` telling the script HOW to read its jobs:
+#   greenhouse / lever / ashby / smartrecruiters  → official public JSON APIs (most reliable)
+#   amazon / apple                                → company-specific endpoints
+#   links                                         → Visualping-style: load a careers page and
+#                                                   collect every link matching `pattern`
+#                                                   (mode: http = plain request, browser = real Chromium)
+#
+# `filter` points at a named filter below (or omit it to get EVERY new job).
+
+filters:
+  # Used for the big companies, which post hundreds of roles a day.
+  early_career_tech:
+    include:   # title must contain at least one of these (whole-word, case-insensitive)
+      - software
+      - engineer
+      - engineering
+      - developer
+      - machine learning
+      - ml
+      - ai
+      - data
+      - research
+      - scientist
+      - neuro
+      - neural
+      - bci
+      - brain
+      - intern
+      - internship
+      - new grad
+      - university
+      - graduate
+      - early career
+      - entry level
+      - associate
+    exclude:   # title must contain none of these
+      - senior
+      - sr
+      - staff
+      - principal
+      - director
+      - manager
+      - head of
+      - vp
+      - lead
+      - distinguished
+      - architect
+      - counsel
+      - recruiter
+      - sales
+      - account executive
+
+  # Neurotech boards are small, so only drop clearly-off-target senior roles.
+  # Delete `filter:` on a company to get literally everything.
+  not_exec:
+    exclude:
+      - director
+      - vp
+      - vice president
+      - head of
+      - chief
+
+companies:
+  # ── Top Tech ────────────────────────────────────────────────
+  - name: Airbnb
+    source: greenhouse
+    slug: airbnb
+    filter: early_career_tech
+
+  - name: Amazon
+    source: amazon
+    # Newest postings first, only in your countries (asked of Amazon directly, so
+    # the 300 jobs we scan per check are all in places you care about)
+    params:
+      sort: recent
+      result_limit: 100
+      "normalized_country_code[]": [USA, HKG, DEU, GBR, NZL]
+    pages: 3               # 3 × 100 newest jobs per check
+    filter: early_career_tech
+
+  - name: Anthropic
+    source: greenhouse
+    slug: anthropic
+    filter: early_career_tech
+
+  - name: Apple
+    source: apple
+    url: "https://jobs.apple.com/en-us/search?sort=newest"
+    pages: 3               # 3 × 20 newest jobs per check
+    filter: early_career_tech
+
+  - name: Duolingo
+    source: greenhouse
+    slug: duolingo
+    filter: early_career_tech
+
+  - name: Google
+    source: links
+    mode: http
+    url: "https://www.google.com/about/careers/applications/jobs/results?sort_by=date"
+    pages: 3               # adds &page=2, &page=3
+    pattern: 'jobs/results/(?P<id>\d+)-(?P<slug>[a-z0-9-]+)'
+    filter: early_career_tech
+
+  - name: Meta
+    source: links
+    mode: browser
+    url: "https://www.metacareers.com/jobsearch/?sort_by_new=true"
+    pattern: 'metacareers\.com/(?:profile/job_details|jobs|v2/jobs)/(?P<id>\d{6,})'
+    json_hint: graphql
+    url_template: "https://www.metacareers.com/profile/job_details/{id}/"
+    filter: early_career_tech
+
+  - name: Microsoft
+    source: links
+    mode: browser
+    url: "https://apply.careers.microsoft.com/careers?domain=microsoft.com&sort_by=timestamp"
+    pattern: 'careers\.microsoft\.com/careers/job/(?P<id>\d{6,})'
+    json_hint: /api/
+    url_template: "https://apply.careers.microsoft.com/careers/job/{id}"
+    filter: early_career_tech
+
+  - name: OpenAI
+    source: ashby
+    slug: openai
+    filter: early_career_tech
+
+  - name: Spotify
+    source: lever
+    slug: spotify
+    filter: early_career_tech
+
+  - name: Waymo
+    source: greenhouse
+    slug: waymo
+    filter: early_career_tech
+
+  - name: Uber                 # moved to jobs.uber.com (Oracle Recruiting) in 2026
+    source: links
+    mode: browser
+    url: "https://jobs.uber.com/en/jobs/"
+    pattern: 'jobs\.uber\.com/[a-z-]+/jobs/(?P<id>\d{4,})'
+    filter: early_career_tech
+
+  # ── Top Neurotech ───────────────────────────────────────────
+  - name: Neuralink
+    source: greenhouse
+    slug: neuralink
+    filter: not_exec
+
+  - name: Synchron             # left Greenhouse for ADP; links are listed on their site
+    source: links
+    mode: http
+    url: "https://synchron.com/careers"
+    pattern: 'workforcenow\.adp\.com/.*[?&]jobId=(?P<id>[\d_]+)'
+    filter: not_exec
+
+  - name: Paradromics
+    source: links            # JazzHR board, server-rendered
+    mode: http
+    url: "https://paradromicsinc.applytojob.com/apply/"
+    pattern: 'applytojob\.com/apply/(?P<id>[A-Za-z0-9]{6,})/(?P<slug>[\w-]+)'
+    filter: not_exec
+
+  - name: Merge Labs
+    source: ashby
+    slug: "Merge Labs"
+    filter: not_exec
+
+  - name: Meta Reality Labs
+    source: links
+    mode: browser
+    url: "https://www.metacareers.com/jobsearch/?q=Reality%20Labs&sort_by_new=true"
+    pattern: 'metacareers\.com/(?:profile/job_details|jobs|v2/jobs)/(?P<id>\d{6,})'
+    json_hint: graphql
+    url_template: "https://www.metacareers.com/profile/job_details/{id}/"
+    filter: not_exec
+
+  - name: Neurable
+    source: smartrecruiters
+    slug: NeurableInc
+    filter: not_exec
+
+  - name: Precision Neuroscience
+    source: links            # Kula careers page (client-rendered)
+    mode: browser
+    url: "https://careers.kula.ai/precision-neuroscience"
+    pattern: 'careers\.kula\.ai/precision-neuroscience/(?P<id>\d+)'
+    filter: not_exec
+
+settings:
+  # Only alert on jobs in these places (applies to every company; a company can
+  # override with its own `locations:` list). Delete this to allow anywhere.
+  # Known names: us, uk, japan, singapore, germany, ireland, australia, france,
+  # canada, south korea, hong kong, new zealand — anything else (e.g. "zurich")
+  # is matched as plain text.
+  # Top countries from the Nov 2026 --locations survey (India left out on purpose),
+  # plus Hong Kong (home base, 0 jobs today but worth watching).
+  locations: [us, uk, japan, singapore, germany, ireland, australia, france, canada,
+              south korea, hong kong]
+  include_remote: true       # also alert on "Remote" / "Anywhere" jobs
+  failure_alert_after: 4     # email you if a source fails this many checks in a row
+  max_jobs_per_company_in_email: 25

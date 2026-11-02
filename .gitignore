@@ -1,0 +1,5 @@
+state/
+secrets.bat
+.env
+__pycache__/
+.venv/
